@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ancient Parchment Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3e_dd; /* A light parchment-like color as a fallback - corrected typo from f5e_dd */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 800px; /* Max width for the container */
+        }
+        #mapImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.25rem;
+            margin-top: 1.5rem;
+            border: 1px solid #d2b48c; /* A subtle border */
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .error-message {
+            color: #dc2626; /* Tailwind red-600 */
+            background-color: #fee2e2; /* Tailwind red-100 */
+            padding: 1rem;
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            border: 1px solid #f87171; /* Tailwind red-400 */
+            margin-top: 1rem;
+        }
+        .download-button {
+            background-color: #4a5568; /* Tailwind gray-700 */
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1.5rem;
+            transition: background-color 0.3s ease;
+        }
+        .download-button:hover {
+            background-color: #2d3748; /* Tailwind gray-800 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Ancient Parchment Map</h1>
+        <p class="text-gray-600 mb-6">Berikut adalah peta yang telah diubah, dengan gaya perkamen kuno.</p>
+
+        <div id="imageContainer">
+            <div id="loadingIndicator" class="loading-spinner"></div>
+            <img id="mapImage" src="#" alt="Ancient Parchment Map" style="display: none;" />
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+        <a id="downloadButton" href="#" class="download-button" style="display: none;">Unduh Peta</a>
+         <p class="mt-4 text-sm text-gray-500">Catatan: Gambar yang dihasilkan AI adalah interpretasi artistik berdasarkan perintah. Detail dari peta asli mungkin diberi gaya atau diubah.</p>
+    </div>
+
+    <script>
+        const imageElement = document.getElementById('mapImage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessageElement = document.getElementById('errorMessage');
+        const imageContainer = document.getElementById('imageContainer');
+        const downloadButton = document.getElementById('downloadButton');
+
+        async function generateAncientMap() {
+            loadingIndicator.style.display = 'block';
+            imageElement.style.display = 'none';
+            errorMessageElement.style.display = 'none';
+            downloadButton.style.display = 'none';
+
+            const prompt = `Transform the provided modern map of Sumatra and surrounding islands into an ancient parchment map.
+            The style should be reminiscent of old cartography.
+            Key features to include:
+            1.  Background: A warm sepia or aged brown texture resembling old, weathered parchment paper. Include subtle creases, stains, or slightly torn/worn edges.
+            2.  Typography: Use elegant medieval or calligraphic-style fonts for all labels.
+            3.  Labels: Highlight major regions and cities like 'SUMATERA', 'Palembang', 'Medan', 'Pekanbaru', 'Jambi', 'Banda Aceh', 'Padang', 'Kuala Lumpur' (if visible/relevant from original context) using period-appropriate lettering. Ensure labels are integrated naturally into the map's aesthetic.
+            4.  Coastlines: Stylized and slightly irregular, as if hand-drawn.
+            5.  Rivers: Clearly outlined, perhaps with a slightly darker or different hue than the land.
+            6.  Mountain Ranges: Depicted in a classic, illustrative style (e.g., small, shaded peaks).
+            7.  Sea/Ocean: Fill with hand-drawn wave patterns or stippling, common in old maps. The color should complement the parchment.
+            8.  Compass Rose: A decorative, vintage compass rose in one of the corners or a suitable open sea area.
+            9.  Border: A subtle, decorative map border framing the entire piece.
+            10. Overall Feel: The map should look like a genuine antique artifact. Avoid any modern digital aesthetics. Focus on texture, hand-drawn qualities, and historical accuracy in style.
+            The original map shows the island of Sumatra, parts of Malaysia, and smaller surrounding islands. The transformed map should maintain this geographical context but in the ancient style.`;
+
+            const apiKey = ""; // API key will be injected by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+            const payload = {
+                instances: [{ "prompt": prompt }],
+                parameters: { "sampleCount": 1 }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('API Error Response:', errorData);
+                    throw new Error(`API request failed with status ${response.status}: ${errorData.error?.message || response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    imageElement.src = imageUrl;
+                    imageElement.style.display = 'block';
+                    
+                    // Setup download button
+                    downloadButton.href = imageUrl;
+                    downloadButton.download = 'ancient_map.png'; // Suggested filename
+                    downloadButton.style.display = 'inline-block';
+
+                } else {
+                    console.error('Unexpected API response structure:', result);
+                    throw new Error('Image data not found in API response.');
+                }
+            } catch (error) {
+                console.error('Error generating ancient map:', error);
+                errorMessageElement.textContent = `Gagal membuat peta: ${error.message}. Silakan coba lagi nanti.`;
+                errorMessageElement.style.display = 'block';
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        // Generate the map when the page loads
+        generateAncientMap();
+    </script>
+</body>
+</html>
